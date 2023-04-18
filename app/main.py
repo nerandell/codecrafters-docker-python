@@ -2,9 +2,11 @@ import os
 import shutil
 import subprocess
 import sys
-
+import ctypes
 
 CHROOT_DIR = "/tmp/chroot"
+CLONE_NEWPID = 0x20000000
+
 
 def main():
     command = sys.argv[3]
@@ -15,6 +17,9 @@ def main():
     os.makedirs(os.path.dirname(destination), exist_ok=True)
     shutil.copy(source, destination)
     os.chroot(CHROOT_DIR)
+
+    libc = ctypes.CDLL("libc.so.6")
+    libc.unshare(CLONE_NEWPID)
 
     completed_process = subprocess.run([command, *args], capture_output=True)
     print(completed_process.stdout.decode("utf-8"), end="")
